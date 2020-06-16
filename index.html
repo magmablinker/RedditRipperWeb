@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RedditRipperWeb</title>
+    <style>
+        html, body {
+            height: 100vh;
+            width: 100vw;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            background-color: rgb(27, 27, 27);
+            background-image: url("img/bg.png");
+            background-attachment: fixed;
+            background-position: center;
+            background-repeat: no-repeat;
+            display: flex;
+            height: 100%;
+            width: 100%;
+            align-content: center;
+            align-items: center;
+        }
+
+        .console, .input-console, .commands-content {
+            font-family: Consolas;
+            font-size: 16px;
+            color: white;
+        }
+
+        .console {
+            display: flex;
+            margin: auto;
+            align-self: center;
+            height: 30rem;
+            width: 58rem;
+            resize: none;
+            background-color: rgba(116, 9, 255, 0.411);
+            border: 2px solid rgba(255, 255, 255, 0.493);
+            border-radius: .2rem;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+
+        .input-console {
+            background-color: rgba(27, 27, 27, 0);
+            height: 20px;
+            border: 0px;        
+            display: inline-block;
+            width: 40rem;
+        }
+
+        .console:focus, .input-console:focus {
+            outline: none;
+        }
+
+        .command-input {
+            display: inline-block;
+            width: calc(58rem - 16px);
+        }
+
+        .console-inner {
+            flex: 0 0 100%;
+            padding: 8px;
+        }
+
+        .user-text {
+            display:inline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="root">
+        <div class="console" ref="console">
+            <div class="console-inner">
+                <div class="commands">
+                    <div class="commands-content" v-for="output in stdout">
+                        {{ output }}
+                    </div>
+                </div>
+                <div class="command-input">
+                    <div class="user-text">root@RedditRipper:~# </div><input type="text" class="input-console" autofocus @keyup.enter="pushCommand" v-model="command">
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="/js/lib/vue.js"></script>
+    <script src="/js/index.js" type="module"></script>
+</body>
+</html>
