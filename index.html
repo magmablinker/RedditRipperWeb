@@ -83,7 +83,7 @@
                 <div class="commands">
 <div class="commands-content" v-for="output in stdout">{{ output }}</div>
                 </div>
-                <div class="command-input">
+                <div class="command-input" v-show="showInput">
                     <div class="user-text">root@RedditRipper:~# </div><input type="text" class="input-console" @keyup.enter="pushCommand" v-model="command" autofocus>
                 </div>
             </div>

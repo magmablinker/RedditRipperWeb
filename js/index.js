@@ -11,17 +11,16 @@ const app = new Vue({
         commandHistory: [],
         argParser: new ArgParser(),
         coreUtils: new CoreUtils(),
-        redditRipper: new RedditRipper()
+        redditRipper: new RedditRipper(),
+        showInput: true
     },
     methods: {
         pushCommand() {
             this.writeToStdOut("root@RedditRipper:~# " + this.command);
 
-            try {
-                this.argParser.evaluate(this.command);
-            } catch(e) {
+            this.argParser.evaluate(this.command).catch(e => {
                 this.writeToStdOut(`Error: ${e.message}`);
-            }
+            });
 
             this.addToCommandHistory();
             this.command = "";
@@ -41,6 +40,9 @@ const app = new Vue({
         },
         clearStdOut() {
             this.stdout = [];
+        },
+        inputVisible(bool) {
+            this.showInput = bool;
         }
     },
     updated() {
@@ -51,6 +53,8 @@ const app = new Vue({
             write: this.writeToStdOut,
             clear: this.clearStdOut
         };
+
+        window.showInput = this.inputVisible;
 
         this.argParser.addArgument("help", this.coreUtils.help);
         this.argParser.addArgument("clear", this.coreUtils.clear);

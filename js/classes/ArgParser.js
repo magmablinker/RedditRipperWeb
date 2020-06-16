@@ -24,7 +24,9 @@ const ArgParser = class {
         }
 
         if(callback) {
+            window.showInput(false);
             await callback();
+            window.showInput(true);
         } else {
             throw new InvalidCommandException("unrecognized command! Use 'help' to learn more.");
         }
