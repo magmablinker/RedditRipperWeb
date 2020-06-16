@@ -62,6 +62,10 @@
             width: calc(58rem - 16px);
         }
 
+        .commands-content {
+            white-space: pre-wrap;
+        }
+
         .console-inner {
             flex: 0 0 100%;
             padding: 8px;
@@ -77,12 +81,10 @@
         <div class="console" ref="console">
             <div class="console-inner">
                 <div class="commands">
-                    <div class="commands-content" v-for="output in stdout">
-                        {{ output }}
-                    </div>
+<div class="commands-content" v-for="output in stdout">{{ output }}</div>
                 </div>
                 <div class="command-input">
-                    <div class="user-text">root@RedditRipper:~# </div><input type="text" class="input-console" autofocus @keyup.enter="pushCommand" v-model="command">
+                    <div class="user-text">root@RedditRipper:~# </div><input type="text" class="input-console" @keyup.enter="pushCommand" v-model="command" autofocus>
                 </div>
             </div>
         </div>

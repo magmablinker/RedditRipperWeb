@@ -1,40 +1,57 @@
+import ArgParser from "./classes/ArgParser.js";
+import CoreUtils from "./classes/CoreUtils.js";
+
 const app = new Vue({
     el: "#root",
     data: {
         console: "",
         command: "",
-        stdout: []
+        stdout: [],
+        commandHistory: [],
+        argParser: new ArgParser()
     },
     methods: {
         pushCommand() {
-            let functionToCall = this.parseCommand();
-            
-            this.stdout.push("root@RedditRipper:~# " + this.command);
-            this.command = "";
+            this.writeToStdOut("root@RedditRipper:~# " + this.command);
 
-            functionToCall();
-        },
-        parseCommand() {
-            let functionToCall;
-
-            switch(this.command) {
-                case "help":
-                    break;
-                default:
-                    functionToCall = this.invalidCommand;
-                    break;
+            try {
+                this.argParser.evaluate(this.command);
+            } catch(e) {
+                this.writeToStdOut(`Error: ${e.message}`);
             }
 
-            return functionToCall;
+            this.addToCommandHistory();
+            this.command = "";
         },
-        invalidCommand() {
-            this.stdout.push("Error: unrecognized command! Use 'help' to learn more.")
+        writeToStdOut(message) {
+            this.stdout.push(message)
         },
         scrollToBottom() {
             this.$refs.console.scrollTop = this.$refs.console.scrollHeight + 200;
+        },
+        addToCommandHistory() {
+            if(this.commandHistory.length > 40) {
+                this.commandHistory = this.commandHistory.splice(1, this.commandHistory.length);
+            }
+
+            this.commandHistory.push(this.command);
+        },
+        clearStdOut() {
+            this.stdout = [];
         }
     },
     updated() {
         this.$nextTick(() => this.scrollToBottom());
     },
+    mounted() {
+        window.stdout = {
+            write: this.writeToStdOut,
+            clear: this.clearStdOut
+        };
+
+        let coreUtils = new CoreUtils();
+
+        this.argParser.addArgument("help", coreUtils.help);
+        this.argParser.addArgument("clear", coreUtils.clear);
+    }
 });
