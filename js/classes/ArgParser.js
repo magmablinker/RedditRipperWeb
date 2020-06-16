@@ -11,7 +11,7 @@ const ArgParser = class {
         });
     }
 
-    evaluate(command) {
+    async evaluate(command) {
         let callback;
 
         for(let i = 0; i < this.arguments.length; i++) {
@@ -24,7 +24,7 @@ const ArgParser = class {
         }
 
         if(callback) {
-            callback();
+            await callback();
         } else {
             throw new InvalidCommandException("unrecognized command! Use 'help' to learn more.");
         }

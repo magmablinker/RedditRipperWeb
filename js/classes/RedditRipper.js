@@ -18,7 +18,8 @@ const RedditRipper = class {
 
     async downloadSubreddits() {
         let urls = await objInstance.getImageUrls();
-        console.log(urls);
+        
+        await objInstance.downloadImages(urls);
     }
 
     async getImageUrls() {
@@ -46,6 +47,32 @@ const RedditRipper = class {
         }
 
         return urls;
+    }
+
+    async downloadImages(urls) {
+        for (let index = 0; index < urls.length; index++) {
+            /*
+             * Fix this stupid bug
+             * Access to XMLHttpRequest at 'https://i.redd.it/wsh3p33g1b551.jpg' from origin 'dadfsadfs' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+             */
+            window.stdout.write(`[+] downloading image ${urls[index]}`);
+            await axios.get(urls[index])
+            .then(response => {
+                let fileURL = window.URL.createObjectURL(new Blob([response.data]));
+                let link = document.createElement('a');
+                link.href = fileURL;
+                link.download = urls[index].substring(urls[index].lastIndexOf("/") + 1);
+
+                document.body.appendChild(link);
+
+                link.click();
+
+                document.body.removeChild(link);
+            })
+            .catch(error => {
+                console.log(error);
+            });        
+        }
     }
 
 };
