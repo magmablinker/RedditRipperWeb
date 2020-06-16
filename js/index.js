@@ -1,5 +1,6 @@
 import ArgParser from "./classes/ArgParser.js";
 import CoreUtils from "./classes/CoreUtils.js";
+import RedditRipper from "./classes/RedditRipper.js";
 
 const app = new Vue({
     el: "#root",
@@ -8,7 +9,9 @@ const app = new Vue({
         command: "",
         stdout: [],
         commandHistory: [],
-        argParser: new ArgParser()
+        argParser: new ArgParser(),
+        coreUtils: new CoreUtils(),
+        redditRipper: new RedditRipper()
     },
     methods: {
         pushCommand() {
@@ -49,9 +52,9 @@ const app = new Vue({
             clear: this.clearStdOut
         };
 
-        let coreUtils = new CoreUtils();
-
-        this.argParser.addArgument("help", coreUtils.help);
-        this.argParser.addArgument("clear", coreUtils.clear);
+        this.argParser.addArgument("help", this.coreUtils.help);
+        this.argParser.addArgument("clear", this.coreUtils.clear);
+        this.argParser.addArgument("add", this.redditRipper.addSubreddit);
+        this.argParser.addArgument("ripp", this.redditRipper.downloadSubreddits)
     }
 });

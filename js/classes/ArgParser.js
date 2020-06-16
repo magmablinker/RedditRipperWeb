@@ -14,11 +14,14 @@ const ArgParser = class {
     evaluate(command) {
         let callback;
 
-        this.arguments.forEach(item => {
-            if(command.includes(item.name)) {
+        for(let i = 0; i < this.arguments.length; i++) {
+            let item = this.arguments[i];
+
+            if(command.startsWith(item.name)) {
+                window.args = command.replace(item.name, "").split(" ").filter(item => item != "");
                 callback = item.callback;
             }
-        });
+        }
 
         if(callback) {
             callback();
