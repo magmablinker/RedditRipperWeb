@@ -46,6 +46,10 @@ var app = new Vue({
             }
         },
         writeToStdOut(message) {
+            if(this.stdout.length > 60) {
+                this.stdout = this.stdout.splice(1, this.stdout.length);
+            }
+
             this.stdout.push(message)
         },
         scrollToBottom() {
