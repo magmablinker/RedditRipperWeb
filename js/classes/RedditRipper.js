@@ -35,8 +35,9 @@ const RedditRipper = class {
             }
 
             if (index > -1) {
+                let removeName = app.$data.redditRipper.subreddits[index];
                 app.$data.redditRipper.subreddits.splice(index, 1);
-                window.stdout.write("the subreddit has been removed from your list!");
+                window.stdout.write(`the subreddit '${removeName}' has been removed from your list!`);
                 app.$data.redditRipper.saveSubreddits();
             } else {
                 throw new InvalidUsageException(`invalid subbreddit/index`);
@@ -67,26 +68,30 @@ const RedditRipper = class {
     }
 
     async downloadSubreddits() {
-        let parsedArgs = {
-            limit: 50,
-            category: "hot"
-        };
-
-        for (let index = 0; index < window.args.length; index++) {
-            const element = window.args[index];
-
-            if (element.includes("limit")) {
-                parsedArgs.limit = element.replace("limit=", "");
+        if(app.$data.redditRipper.subreddits.length > 0) {
+            let parsedArgs = {
+                limit: 50,
+                category: "hot"
+            };
+    
+            for (let index = 0; index < window.args.length; index++) {
+                const element = window.args[index];
+    
+                if (element.includes("limit")) {
+                    parsedArgs.limit = element.replace("limit=", "");
+                }
+    
+                if (element.includes("category")) {
+                    parsedArgs.category = element.replace("category=", "");
+                }
             }
-
-            if (element.includes("category")) {
-                parsedArgs.category = element.replace("category=", "");
-            }
+    
+            let urls = await app.$data.redditRipper.getImageUrls(parsedArgs.category, parsedArgs.limit);
+    
+            await app.$data.redditRipper.downloadImages(urls);
+        } else {
+            window.stdout.write(`No subreddits found! Add one with the command 'add {subreddit}'`);
         }
-
-        let urls = await app.$data.redditRipper.getImageUrls(parsedArgs.category, parsedArgs.limit);
-
-        await app.$data.redditRipper.downloadImages(urls);
     }
 
     async getImageUrls(category, limit) {
@@ -149,9 +154,11 @@ const RedditRipper = class {
                         })
                         .catch(error => console.log(error));
                 } else {
-                    window.stdout.write(`url ${subreddits[index].urls[j]} contains invalid file type`);
+                    window.stdout.write(`[!] url ${subreddits[index].urls[j]} contains invalid file type`);
                 }
             }
+
+            window.stdout.write(`[+] generating zip file for the subreddit ${subreddits[index].subreddit}`);
 
             await zip.generateAsync({
                 type: 'blob'
@@ -170,8 +177,12 @@ const RedditRipper = class {
     }
 
     listSubreddits() {
-        for (let index = 0; index < app.$data.redditRipper.subreddits.length; index++) {
-            window.stdout.write(`[${index}] ${app.$data.redditRipper.subreddits[index]}`);
+        if(app.$data.redditRipper.subreddits.length > 0) {
+            for (let index = 0; index < app.$data.redditRipper.subreddits.length; index++) {
+                window.stdout.write(`[${index}] ${app.$data.redditRipper.subreddits[index]}`);
+            }
+        } else {
+            window.stdout.write(`No subreddits found! Add one with the command 'add {subreddit}'`);
         }
     }
 

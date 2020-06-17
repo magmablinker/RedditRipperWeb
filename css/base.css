@@ -83,3 +83,21 @@ html, body {
 .user-text {
     display:inline;
 }
+
+.topbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background-color: rgba(0, 0, 0, 0.4);
+    font-family: Konsolas;
+}
+
+.clock {
+    display: inline-block;
+    color: white;
+    margin: 0px;
+    padding: 8px;
+    float: right;
+    clear: right;
+}

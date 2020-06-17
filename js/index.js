@@ -5,6 +5,7 @@ import RedditRipper from "./classes/RedditRipper.js";
 var app = new Vue({
     el: "#root",
     data: {
+        clock: "",
         console: "",
         command: "",
         stdout: [],
@@ -16,18 +17,33 @@ var app = new Vue({
         showInput: true
     },
     methods: {
+        getClock() {
+            let date = new Date();
+            this.clock = `${this.zeroPadding(date.getHours(), 2)}:${this.zeroPadding(date.getMinutes(), 2)}:${this.zeroPadding(date.getSeconds(), 2)}`
+        },
+        zeroPadding(num, digit) {
+            let zero = '';
+
+            for(let i = 0; i < digit; i++) {
+                zero += '0';
+            }
+
+            return (zero + num).slice(-digit);
+        },
         pushCommand() {
             this.writeToStdOut("root@RedditRipper:~# " + this.command);
 
-            this.argParser.evaluate(this.command).then(result => {
-                this.addToCommandHistory();
-            }).catch(e => {
-                this.writeToStdOut(`Error: ${e.message}`);
-            })
-            .finally(() => {
-                this.command = "";
-                this.showInput = true;
-            });
+            if(this.command) {
+                this.argParser.evaluate(this.command).then(result => {
+                    this.addToCommandHistory();
+                }).catch(e => {
+                    this.writeToStdOut(`Error: ${e.message}`);
+                })
+                .finally(() => {
+                    this.command = "";
+                    this.showInput = true;
+                });
+            }
         },
         writeToStdOut(message) {
             this.stdout.push(message)
@@ -91,6 +107,10 @@ var app = new Vue({
         });
     },
     mounted() {
+        setInterval(() => {
+            this.getClock();
+        }, 1000);
+
         this.loadCommandHistory();
 
         window.stdout = {
