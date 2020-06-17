@@ -37,6 +37,7 @@ var app = new Vue({
             }
 
             this.commandHistory.push(this.command);
+            this.saveCommandHistory();
         },
         clearStdOut() {
             this.stdout = [];
@@ -46,6 +47,24 @@ var app = new Vue({
         },
         focusInput() {
             this.$refs.commandInput.focus();
+        },
+        loadCommandHistory() {
+            try {
+                let data = localStorage.getItem("commandHistory");
+
+                if(data) {
+                    this.commandHistory = JSON.parse(data);
+                }
+            } catch(e) {
+                this.writeToStdOut(`Error: your browser doesn't support local storage. Please consider using a more modern browser.`);
+            }
+        },
+        saveCommandHistory() {
+            try {
+                localStorage.setItem("commandHistory", JSON.stringify(this.commandHistory));
+            } catch(e) {
+                this.writeToStdOut(`Error: your browser doesn't support local storage. Please consider using a more modern browser.`);
+            }
         }
     },
     updated() {
@@ -54,6 +73,8 @@ var app = new Vue({
         });
     },
     mounted() {
+        this.loadCommandHistory();
+
         window.stdout = {
             write: this.writeToStdOut,
             clear: this.clearStdOut
@@ -63,6 +84,7 @@ var app = new Vue({
 
         this.argParser.addArgument("clear", this.coreUtils.clear, "clears the previous terminal output");
         this.argParser.addArgument("add", this.redditRipper.addSubreddit, "add a subreddit to the download list, usage: add {subreddit}");
+        this.argParser.addArgument("rm", this.redditRipper.removeSubreddit, "removes a subreddit from your download list, usage: remove {subreddit}");
         this.argParser.addArgument("ls", this.redditRipper.listSubreddits, "lists all subreddits in your download list");
         this.argParser.addArgument("redditripper.js", this.redditRipper.downloadSubreddits, "starts the download process");
 

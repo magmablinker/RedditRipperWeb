@@ -4,6 +4,7 @@ const RedditRipper = class {
 
     constructor() {
         this.subreddits = [];
+        this.loadSubreddits();
     }
 
     addSubreddit() {
@@ -11,9 +12,42 @@ const RedditRipper = class {
         if(window.args) {
             if(window.args[0]) {
                 app.$data.redditRipper.subreddits.push(window.args[0]);
+                app.$data.redditRipper.saveSubreddits();
             } else {
                 throw new InvalidUsageException(`argument 'subreddit' missing`);
             }
+        }
+    }
+
+    removeSubreddit() {
+        if(window.args) {
+            if(window.args[0]) {
+                app.$data.redditRipper.subreddits = app.$data.redditRipper.subreddits.filter(item => item != window.args[0]);
+                app.$data.redditRipper.saveSubreddits();
+                window.stdout.write("the subreddit has been removed from your list!");
+            } else {
+                throw new InvalidUsageException(`argument 'subreddit' missing`);
+            }
+        }
+    }
+
+    loadSubreddits() {
+        try {
+            let data = localStorage.getItem("subreddits");
+
+            if(data) {
+                this.subreddits = JSON.parse(data);
+            }
+        } catch(e) {
+            this.writeToStdOut(`Error: your browser doesn't support local storage. Please consider using a more modern browser.`);
+        }
+    }
+
+    saveSubreddits() {
+        try {
+           localStorage.setItem("subreddits", JSON.stringify(app.$data.redditRipper.subreddits));
+        } catch(e) {
+            this.writeToStdOut(`Error: your browser doesn't support local storage. Please consider using a more modern browser.`);
         }
     }
 
