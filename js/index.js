@@ -2,7 +2,7 @@ import ArgParser from "./classes/ArgParser.js";
 import CoreUtils from "./classes/CoreUtils.js";
 import RedditRipper from "./classes/RedditRipper.js";
 
-const app = new Vue({
+var app = new Vue({
     el: "#root",
     data: {
         console: "",
@@ -56,9 +56,10 @@ const app = new Vue({
 
         window.showInput = this.inputVisible;
 
-        this.argParser.addArgument("help", this.coreUtils.help);
-        this.argParser.addArgument("clear", this.coreUtils.clear);
-        this.argParser.addArgument("add", this.redditRipper.addSubreddit);
-        this.argParser.addArgument("ripp", this.redditRipper.downloadSubreddits)
+        this.argParser.addArgument("clear", this.coreUtils.clear, "clears the previous terminal output");
+        this.argParser.addArgument("add", this.redditRipper.addSubreddit, "add a subreddit to the download list, usage: add {subreddit}");
+        this.argParser.addArgument("redditripper.js", this.redditRipper.downloadSubreddits, "starts the download process");
     }
 });
+
+export default app;
