@@ -10,6 +10,7 @@
             width: 100vw;
             margin: 0;
             padding: 0;
+            /* cursor: none; */
         }
 
         .container {
@@ -84,7 +85,7 @@
 <div class="commands-content" v-for="output in stdout">{{ output }}</div>
                 </div>
                 <div class="command-input" v-show="showInput">
-                    <div class="user-text">root@RedditRipper:~# </div><input type="text" class="input-console" @keyup.enter="pushCommand" v-model="command" autofocus>
+                    <div class="user-text">root@RedditRipper:~# </div><input type="text" class="input-console" @keyup.enter="pushCommand" v-model="command" @blur="focusInput" ref="commandInput" autofocus>
                 </div>
             </div>
         </div>

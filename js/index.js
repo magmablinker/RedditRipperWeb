@@ -43,10 +43,15 @@ var app = new Vue({
         },
         inputVisible(bool) {
             this.showInput = bool;
+        },
+        focusInput() {
+            this.$refs.commandInput.focus();
         }
     },
     updated() {
-        this.$nextTick(() => this.scrollToBottom());
+        this.$nextTick(() => {
+            this.scrollToBottom();
+        });
     },
     mounted() {
         window.stdout = {
@@ -58,7 +63,10 @@ var app = new Vue({
 
         this.argParser.addArgument("clear", this.coreUtils.clear, "clears the previous terminal output");
         this.argParser.addArgument("add", this.redditRipper.addSubreddit, "add a subreddit to the download list, usage: add {subreddit}");
+        this.argParser.addArgument("ls", this.redditRipper.listSubreddits, "lists all subreddits in your download list");
         this.argParser.addArgument("redditripper.js", this.redditRipper.downloadSubreddits, "starts the download process");
+
+        this.focusInput();
     }
 });
 

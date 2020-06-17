@@ -78,6 +78,12 @@ const RedditRipper = class {
         }
     }
 
+    listSubreddits() {
+        for (let index = 0; index < app.$data.redditRipper.subreddits.length; index++) {
+            window.stdout.write(app.$data.redditRipper.subreddits[index]);
+        }
+    }
+
 };
 
 function InvalidUsageException(message) {
