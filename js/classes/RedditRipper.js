@@ -60,9 +60,14 @@ const RedditRipper = class {
     async getImageUrls() {
         const urls = [];
 
-        for (let index = 0; index < app.$data.redditRipper.subreddits.length; index++) {
+        for (let index = 0; index < app.$data.redditRipper.subreddits.length; index++) {            
             const subreddit = app.$data.redditRipper.subreddits[index];
-            let url = `http://api.reddit.com/r/${subreddit}/hot?limit=10`   
+            let url = `http://api.reddit.com/r/${subreddit}/hot?limit=10`  
+
+            urls.push({
+                subreddit: subreddit,
+                urls: []
+            });
 
             await axios.get(url)
                     .then(response => {
@@ -70,46 +75,74 @@ const RedditRipper = class {
                             throw new InvalidUsageException(`subreddit ${subreddit} doesn't exist!`);
                         }
 
-                        for (let index = 0; index < response.data.data.children.length; index++) {
-                            const element = response.data.data.children[index];
-                            urls.push(element.data.url);
+                        for (let i = 0; i < response.data.data.children.length; i++) {
+                            const element = response.data.data.children[i];
+                            urls[index].urls.push(element.data.url);
                         }
                     })
-                    .catch(error => {
-                        console.log(error);
-                    })
-
+                    .catch(error => console.log(error));
         }
 
         return urls;
     }
 
-    async downloadImages(urls) {
-        for (let index = 0; index < urls.length; index++) {
-            /*
-             * Fix this stupid bug
-             * Access to XMLHttpRequest at 'https://i.redd.it/wsh3p33g1b551.jpg' from origin 'dadfsadfs' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
-             */
-            if(!urls[index].includes("gifv")) {
-                window.stdout.write(`[+] downloading image ${urls[index]}`);
-                await axios.get(urls[index])
-                .then(response => {
-                    let fileURL = window.URL.createObjectURL(new Blob([response.data]));
-                    let link = document.createElement('a');
-                    link.href = fileURL;
-                    link.download = urls[index].substring(urls[index].lastIndexOf("/") + 1);
+    async downloadImages(subreddits) {
+        let allowedFileTypes = [".jpg", ".jpeg", ".gif", ".png"];
+
+        for (let index = 0; index < subreddits.length; index++) {
+            let zip = new JSZip();
+
+            for(let j = 0; j < subreddits[index].urls.length; j++) {
+                let isValidFileType = false;
+
+                for (let i = 0; i < allowedFileTypes.length; i++) {
+                    if(subreddits[index].urls[j].includes(allowedFileTypes[i])) {
+                        isValidFileType = true;
+                        break;
+                    }
+                }
     
-                    document.body.appendChild(link);
-    
-                    link.click();
-    
-                    document.body.removeChild(link);
-                })
-                .catch(error => {
-                    console.log(error);
-                });        
+                if(isValidFileType) {
+                    window.stdout.write(`[+] downloading image ${subreddits[index].urls[j]}`);
+
+                    await axios.get(`https://cors-anywhere.herokuapp.com/${subreddits[index].urls[j]}`, {
+                        responseType: 'blob'
+                    })
+                    .then(response => {
+                        if(response.data) {
+                            zip.file(subreddits[index].urls[j].substring(subreddits[index].urls[j].lastIndexOf("/") + 1), response.data, {
+                                binary: true
+                            });
+                        }
+                    })
+                    .catch(error => console.log(error));
+                } else {
+                    window.stdout.write(`url ${subreddits[index].urls[j]} contains invalid file type`);
+                }
             }
+
+            await zip.generateAsync({
+                type: 'blob'
+            }).then((content) => {
+                var uriContent = URL.createObjectURL(content);
+
+                let downloadLink = document.createElement("a");
+                downloadLink.download = subreddits[index].subreddit + ".zip";
+                downloadLink.href = uriContent;
+
+                document.body.appendChild(downloadLink);
+                downloadLink.click();
+                document.body.removeChild(downloadLink);
+            });
         }
+    }
+
+    toDataURL(url) {
+        return fetch(url).then((response) => {
+            return response.blob();
+        }).then(blob => {
+            return URL.createObjectURL(blob);
+        });
     }
 
     listSubreddits() {
