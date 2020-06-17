@@ -8,7 +8,7 @@ html, body {
 
 .container {
     background-color: rgb(27, 27, 27);
-    background-image: url("img/bg.png");
+    background-image: url("../img/bg.png");
     background-attachment: fixed;
     background-position: center;
     background-repeat: no-repeat;
