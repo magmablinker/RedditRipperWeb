@@ -9,8 +9,8 @@ const RedditRipper = class {
 
     addSubreddit() {
         // TODO: Add check for subreddit exists
-        if(window.args) {
-            if(window.args[0]) {
+        if (window.args) {
+            if (window.args[0]) {
                 app.$data.redditRipper.subreddits.push(window.args[0]);
                 app.$data.redditRipper.saveSubreddits();
             } else {
@@ -20,14 +20,29 @@ const RedditRipper = class {
     }
 
     removeSubreddit() {
-        if(window.args) {
-            if(window.args[0]) {
-                app.$data.redditRipper.subreddits = app.$data.redditRipper.subreddits.filter(item => item != window.args[0]);
-                app.$data.redditRipper.saveSubreddits();
-                window.stdout.write("the subreddit has been removed from your list!");
-            } else {
-                throw new InvalidUsageException(`argument 'subreddit' missing`);
+        if (window.args) {
+            let index = -1;
+
+            if (window.args[0]) {
+                // Check if it is a number or string
+                if (parseFloat(window.args[0]) == window.args[0]) {
+                    if (app.$data.redditRipper.subreddits[window.args[0]]) {
+                        index = window.args[0]
+                    }
+                } else {
+                    index = app.$data.redditRipper.subreddits.indexOf(window.args[0]);
+                }
             }
+
+            if (index > -1) {
+                app.$data.redditRipper.subreddits.splice(index, 1);
+                window.stdout.write("the subreddit has been removed from your list!");
+                app.$data.redditRipper.saveSubreddits();
+            } else {
+                throw new InvalidUsageException(`invalid subbreddit/index`);
+            }
+        } else {
+            throw new InvalidUsageException(`argument 'subreddit' missing`);
         }
     }
 
@@ -35,18 +50,18 @@ const RedditRipper = class {
         try {
             let data = localStorage.getItem("subreddits");
 
-            if(data) {
+            if (data) {
                 this.subreddits = JSON.parse(data);
             }
-        } catch(e) {
+        } catch (e) {
             this.writeToStdOut(`Error: your browser doesn't support local storage. Please consider using a more modern browser.`);
         }
     }
 
     saveSubreddits() {
         try {
-           localStorage.setItem("subreddits", JSON.stringify(app.$data.redditRipper.subreddits));
-        } catch(e) {
+            localStorage.setItem("subreddits", JSON.stringify(app.$data.redditRipper.subreddits));
+        } catch (e) {
             this.writeToStdOut(`Error: your browser doesn't support local storage. Please consider using a more modern browser.`);
         }
     }
@@ -59,27 +74,27 @@ const RedditRipper = class {
 
         for (let index = 0; index < window.args.length; index++) {
             const element = window.args[index];
-            
-            if(element.includes("limit")) {
+
+            if (element.includes("limit")) {
                 parsedArgs.limit = element.replace("limit=", "");
             }
 
-            if(element.includes("category")) {
+            if (element.includes("category")) {
                 parsedArgs.category = element.replace("category=", "");
             }
         }
 
         let urls = await app.$data.redditRipper.getImageUrls(parsedArgs.category, parsedArgs.limit);
-        
+
         await app.$data.redditRipper.downloadImages(urls);
     }
 
     async getImageUrls(category, limit) {
         const urls = [];
 
-        for (let index = 0; index < app.$data.redditRipper.subreddits.length; index++) {            
+        for (let index = 0; index < app.$data.redditRipper.subreddits.length; index++) {
             const subreddit = app.$data.redditRipper.subreddits[index];
-            let url = `http://api.reddit.com/r/${subreddit}/${category}?limit=${limit}`  
+            let url = `http://api.reddit.com/r/${subreddit}/${category}?limit=${limit}`
 
             urls.push({
                 subreddit: subreddit,
@@ -87,17 +102,17 @@ const RedditRipper = class {
             });
 
             await axios.get(url)
-                    .then(response => {
-                        if(response.data.data.children < 1) {
-                            throw new InvalidUsageException(`subreddit ${subreddit} doesn't exist!`);
-                        }
+                .then(response => {
+                    if (response.data.data.children < 1) {
+                        throw new InvalidUsageException(`subreddit ${subreddit} doesn't exist!`);
+                    }
 
-                        for (let i = 0; i < response.data.data.children.length; i++) {
-                            const element = response.data.data.children[i];
-                            urls[index].urls.push(element.data.url);
-                        }
-                    })
-                    .catch(error => console.log(error));
+                    for (let i = 0; i < response.data.data.children.length; i++) {
+                        const element = response.data.data.children[i];
+                        urls[index].urls.push(element.data.url);
+                    }
+                })
+                .catch(error => console.log(error));
         }
 
         return urls;
@@ -109,30 +124,30 @@ const RedditRipper = class {
         for (let index = 0; index < subreddits.length; index++) {
             let zip = new JSZip();
 
-            for(let j = 0; j < subreddits[index].urls.length; j++) {
+            for (let j = 0; j < subreddits[index].urls.length; j++) {
                 let isValidFileType = false;
 
                 for (let i = 0; i < allowedFileTypes.length; i++) {
-                    if(subreddits[index].urls[j].includes(allowedFileTypes[i])) {
+                    if (subreddits[index].urls[j].includes(allowedFileTypes[i])) {
                         isValidFileType = true;
                         break;
                     }
                 }
-    
-                if(isValidFileType && !subreddits[index].urls[j].includes("gifv")) {
+
+                if (isValidFileType && !subreddits[index].urls[j].includes("gifv")) {
                     window.stdout.write(`[+] downloading image ${subreddits[index].urls[j]}`);
 
                     await axios.get(`https://cors-anywhere.herokuapp.com/${subreddits[index].urls[j]}`, {
                         responseType: 'blob'
                     })
-                    .then(response => {
-                        if(response.data) {
-                            zip.file(subreddits[index].urls[j].substring(subreddits[index].urls[j].lastIndexOf("/") + 1), response.data, {
-                                binary: true
-                            });
-                        }
-                    })
-                    .catch(error => console.log(error));
+                        .then(response => {
+                            if (response.data) {
+                                zip.file(subreddits[index].urls[j].substring(subreddits[index].urls[j].lastIndexOf("/") + 1), response.data, {
+                                    binary: true
+                                });
+                            }
+                        })
+                        .catch(error => console.log(error));
                 } else {
                     window.stdout.write(`url ${subreddits[index].urls[j]} contains invalid file type`);
                 }
@@ -154,17 +169,9 @@ const RedditRipper = class {
         }
     }
 
-    toDataURL(url) {
-        return fetch(url).then((response) => {
-            return response.blob();
-        }).then(blob => {
-            return URL.createObjectURL(blob);
-        });
-    }
-
     listSubreddits() {
         for (let index = 0; index < app.$data.redditRipper.subreddits.length; index++) {
-            window.stdout.write(app.$data.redditRipper.subreddits[index]);
+            window.stdout.write(`[${index}] ${app.$data.redditRipper.subreddits[index]}`);
         }
     }
 
