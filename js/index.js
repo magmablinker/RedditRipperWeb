@@ -88,6 +88,7 @@ var app = new Vue({
         saveCommandHistory() {
             try {
                 localStorage.setItem("commandHistory", JSON.stringify(this.commandHistory));
+                this.historyIndex = this.commandHistory.length - 1;
             } catch(e) {
                 this.writeToStdOut(`Error: your browser doesn't support local storage. Please consider using a more modern browser.`);
             }
