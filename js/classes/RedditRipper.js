@@ -99,7 +99,7 @@ const RedditRipper = class {
 
         for (let index = 0; index < app.$data.redditRipper.subreddits.length; index++) {
             const subreddit = app.$data.redditRipper.subreddits[index];
-            let url = `http://api.reddit.com/r/${subreddit}/${category}?limit=${limit}`
+            let url = `https://api.reddit.com/r/${subreddit}/${category}?limit=${limit}`
 
             urls.push({
                 subreddit: subreddit,
