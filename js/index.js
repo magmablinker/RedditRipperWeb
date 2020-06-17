@@ -9,6 +9,7 @@ var app = new Vue({
         command: "",
         stdout: [],
         commandHistory: [],
+        historyIndex: 0,
         argParser: new ArgParser(),
         coreUtils: new CoreUtils(),
         redditRipper: new RedditRipper(),
@@ -18,12 +19,15 @@ var app = new Vue({
         pushCommand() {
             this.writeToStdOut("root@RedditRipper:~# " + this.command);
 
-            this.argParser.evaluate(this.command).catch(e => {
+            this.argParser.evaluate(this.command).then(result => {
+                this.addToCommandHistory();
+            }).catch(e => {
                 this.writeToStdOut(`Error: ${e.message}`);
+            })
+            .finally(() => {
+                this.command = "";
+                this.showInput = true;
             });
-
-            this.addToCommandHistory();
-            this.command = "";
         },
         writeToStdOut(message) {
             this.stdout.push(message)
@@ -37,6 +41,7 @@ var app = new Vue({
             }
 
             this.commandHistory.push(this.command);
+            this.historyIndex = this.commandHistory.length - 1;
             this.saveCommandHistory();
         },
         clearStdOut() {
@@ -54,6 +59,7 @@ var app = new Vue({
 
                 if(data) {
                     this.commandHistory = JSON.parse(data);
+                    this.historyIndex = this.commandHistory.length - 1;
                 }
             } catch(e) {
                 this.writeToStdOut(`Error: your browser doesn't support local storage. Please consider using a more modern browser.`);
@@ -64,6 +70,18 @@ var app = new Vue({
                 localStorage.setItem("commandHistory", JSON.stringify(this.commandHistory));
             } catch(e) {
                 this.writeToStdOut(`Error: your browser doesn't support local storage. Please consider using a more modern browser.`);
+            }
+        },
+        historyUp() {
+            if(this.historyIndex > 0) {
+                this.command = this.commandHistory[this.historyIndex];
+                this.historyIndex--;
+            }
+        },
+        historyDown() {
+            if(this.historyIndex < this.commandHistory.length) {
+                this.command = this.commandHistory[this.historyIndex];
+                this.historyIndex++;
             }
         }
     },
@@ -86,7 +104,9 @@ var app = new Vue({
         this.argParser.addArgument("add", this.redditRipper.addSubreddit, "add a subreddit to the download list, usage: add {subreddit}");
         this.argParser.addArgument("rm", this.redditRipper.removeSubreddit, "removes a subreddit from your download list, usage: remove {subreddit}");
         this.argParser.addArgument("ls", this.redditRipper.listSubreddits, "lists all subreddits in your download list");
-        this.argParser.addArgument("redditripper.js", this.redditRipper.downloadSubreddits, "starts the download process");
+        this.argParser.addArgument("redditripper.js", this.redditRipper.downloadSubreddits, `starts the download process
+            - can be called with the arguments limit={limit} and category={category}
+              allowed categories are hot, top, new`);
 
         this.focusInput();
     }

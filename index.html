@@ -75,6 +75,21 @@
         .user-text {
             display:inline;
         }
+
+        .console::-webkit-scrollbar {
+            width: .6em;
+        }
+
+        .console::-webkit-scrollbar-track {
+            box-shadow: inset 0 0 4px rgba(255, 255, 255, 0.096);
+            border-radius: .25rem;
+        }
+
+        .console::-webkit-scrollbar-thumb {
+            background-color: rgba(255, 255, 255, 0.1);
+            outline: 1px solid black;
+            border-radius: .25rem;
+        }
     </style>
 </head>
 <body>
@@ -85,7 +100,7 @@
 <div class="commands-content" v-for="output in stdout">{{ output }}</div>
                 </div>
                 <div class="command-input" v-show="showInput">
-                    <div class="user-text">root@RedditRipper:~# </div><input type="text" class="input-console" @keyup.enter="pushCommand" v-model="command" @blur="focusInput" ref="commandInput" autofocus>
+                    <div class="user-text">root@RedditRipper:~# </div><input type="text" class="input-console" @keyup.enter="pushCommand" v-model="command" @blur="focusInput" ref="commandInput" @keyup.38="historyUp" @keyup.40="historyDown" autofocus>
                 </div>
             </div>
         </div>
