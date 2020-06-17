@@ -52,17 +52,34 @@ const RedditRipper = class {
     }
 
     async downloadSubreddits() {
-        let urls = await app.$data.redditRipper.getImageUrls();
+        let parsedArgs = {
+            limit: 50,
+            category: "hot"
+        };
+
+        for (let index = 0; index < window.args.length; index++) {
+            const element = window.args[index];
+            
+            if(element.includes("limit")) {
+                parsedArgs.limit = element.replace("limit=", "");
+            }
+
+            if(element.includes("category")) {
+                parsedArgs.category = element.replace("category=", "");
+            }
+        }
+
+        let urls = await app.$data.redditRipper.getImageUrls(parsedArgs.category, parsedArgs.limit);
         
         await app.$data.redditRipper.downloadImages(urls);
     }
 
-    async getImageUrls() {
+    async getImageUrls(category, limit) {
         const urls = [];
 
         for (let index = 0; index < app.$data.redditRipper.subreddits.length; index++) {            
             const subreddit = app.$data.redditRipper.subreddits[index];
-            let url = `http://api.reddit.com/r/${subreddit}/hot?limit=10`  
+            let url = `http://api.reddit.com/r/${subreddit}/${category}?limit=${limit}`  
 
             urls.push({
                 subreddit: subreddit,
@@ -102,7 +119,7 @@ const RedditRipper = class {
                     }
                 }
     
-                if(isValidFileType) {
+                if(isValidFileType && !subreddits[index].urls[j].includes("gifv")) {
                     window.stdout.write(`[+] downloading image ${subreddits[index].urls[j]}`);
 
                     await axios.get(`https://cors-anywhere.herokuapp.com/${subreddits[index].urls[j]}`, {
