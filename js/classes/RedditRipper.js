@@ -11,8 +11,12 @@ const RedditRipper = class {
         // TODO: Add check for subreddit exists
         if (window.args) {
             if (window.args[0]) {
-                app.$data.redditRipper.subreddits.push(window.args[0]);
-                app.$data.redditRipper.saveSubreddits();
+                if(!app.$data.redditRipper.subreddits.includes(window.args[0])) {
+                    app.$data.redditRipper.subreddits.push(window.args[0]);
+                    app.$data.redditRipper.saveSubreddits();
+                } else {
+                    window.stdout.write(`subreddit ${window.args[0]} is already in download list`);
+                }
             } else {
                 throw new InvalidUsageException(`argument 'subreddit' missing`);
             }
