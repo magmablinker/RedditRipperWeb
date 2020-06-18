@@ -1,6 +1,7 @@
 import ArgParser from "./classes/ArgParser.js";
 import CoreUtils from "./classes/CoreUtils.js";
 import RedditRipper from "./classes/RedditRipper.js";
+import YoutubeDownload from "./classes/YoutubeDownload.js";
 
 var app = new Vue({
     el: "#root",
@@ -14,7 +15,9 @@ var app = new Vue({
         argParser: new ArgParser(),
         coreUtils: new CoreUtils(),
         redditRipper: new RedditRipper(),
-        showInput: true
+        youtubeDownload: new YoutubeDownload(),
+        showInput: true,
+        proxyUrl: "https://cors-anywhere.herokuapp.com/"
     },
     methods: {
         getClock() {
@@ -31,7 +34,7 @@ var app = new Vue({
             return (zero + num).slice(-digit);
         },
         pushCommand() {
-            this.writeToStdOut("root@RedditRipper:~# " + this.command);
+            this.writeToStdOut("root@webconsole:~# " + this.command);
 
             if(this.command) {
                 this.argParser.evaluate(this.command).then(result => {
@@ -125,13 +128,16 @@ var app = new Vue({
 
         window.showInput = this.inputVisible;
 
-        this.argParser.addArgument("clear", this.coreUtils.clear, "clears the previous terminal output");
-        this.argParser.addArgument("add", this.redditRipper.addSubreddit, "add a subreddit to the download list, usage: add {subreddit}");
-        this.argParser.addArgument("rm", this.redditRipper.removeSubreddit, "removes a subreddit from your download list, usage: remove {subreddit}");
-        this.argParser.addArgument("ls", this.redditRipper.listSubreddits, "lists all subreddits in your download list");
-        this.argParser.addArgument("redditripper.js", this.redditRipper.downloadSubreddits, `starts the download process
-            - can be called with the arguments limit={limit} and category={category}
-              allowed categories are hot, top, new`);
+        this.argParser.addArgument("clear", this.coreUtils.clear, {}, "clears the previous terminal output");
+        this.argParser.addArgument("echo", this.coreUtils.echo, {}, "prints a text to stdout, usage: echo {message}")
+        this.argParser.addArgument("add", this.redditRipper.addSubreddit, {}, "add a subreddit to the download list, usage: add {subreddit}");
+        this.argParser.addArgument("rm", this.redditRipper.removeSubreddit, {}, "removes a subreddit from your download list, usage: rm {subreddit/index}");
+        this.argParser.addArgument("ls", this.redditRipper.listSubreddits, {}, "lists all subreddits in your download list");
+        this.argParser.addArgument("redditdl", this.redditRipper.downloadSubreddits, { "limit": 50, "category": "hot", "subreddit": undefined }, `starts the download process
+              - can be called with the arguments: 
+                * limit {limit} (0-100)
+                * category {category} (allowed categories are hot, top, new) 
+                * subreddit {subreddit} (to download a single subreddit).`);
 
         this.focusInput();
     }

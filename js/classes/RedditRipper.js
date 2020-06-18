@@ -1,4 +1,4 @@
-import app from '../index.js'
+import app from '../index.js';
 
 const RedditRipper = class {
 
@@ -73,24 +73,13 @@ const RedditRipper = class {
 
     async downloadSubreddits() {
         if(app.$data.redditRipper.subreddits.length > 0) {
-            let parsedArgs = {
-                limit: 50,
-                category: "hot"
-            };
-    
-            for (let index = 0; index < window.args.length; index++) {
-                const element = window.args[index];
-    
-                if (element.includes("limit")) {
-                    parsedArgs.limit = element.replace("limit=", "");
-                }
-    
-                if (element.includes("category")) {
-                    parsedArgs.category = element.replace("category=", "");
-                }
+            let urls;
+
+            if(!window.args.subreddit) {
+                urls = await app.$data.redditRipper.getImageUrls(window.args.category, window.args.limit, app.$data.redditRipper.subreddits);
+            } else {
+                urls = await app.$data.redditRipper.getImageUrls(window.args.category, window.args.limit, [ window.args.subreddit ]);
             }
-    
-            let urls = await app.$data.redditRipper.getImageUrls(parsedArgs.category, parsedArgs.limit);
     
             await app.$data.redditRipper.downloadImages(urls);
         } else {
@@ -98,17 +87,19 @@ const RedditRipper = class {
         }
     }
 
-    async getImageUrls(category, limit) {
+    async getImageUrls(category, limit, subreddits) {
         const urls = [];
 
-        for (let index = 0; index < app.$data.redditRipper.subreddits.length; index++) {
-            const subreddit = app.$data.redditRipper.subreddits[index];
+        for (let index = 0; index < subreddits.length; index++) {
+            const subreddit = subreddits[index];
             let url = `https://api.reddit.com/r/${subreddit}/${category}?limit=${limit}`
 
             urls.push({
                 subreddit: subreddit,
                 urls: []
             });
+
+            window.stdout.write(`[+] fetching images for subreddit ${subreddit}`);
 
             await axios.get(url)
                 .then(response => {
@@ -132,6 +123,7 @@ const RedditRipper = class {
 
         for (let index = 0; index < subreddits.length; index++) {
             let zip = new JSZip();
+            let files = 0;
 
             for (let j = 0; j < subreddits[index].urls.length; j++) {
                 let isValidFileType = false;
@@ -146,14 +138,23 @@ const RedditRipper = class {
                 if (isValidFileType && !subreddits[index].urls[j].includes("gifv")) {
                     window.stdout.write(`[+] downloading image ${subreddits[index].urls[j]}`);
 
-                    await axios.get(`https://cors-anywhere.herokuapp.com/${subreddits[index].urls[j]}`, {
-                        responseType: 'blob'
+                    let url = `${subreddits[index].urls[j]}`;
+
+                    if(!url.includes("imgur")) {
+                        url = `${app.$data.proxyUrl}${subreddits[index].urls[j]}`;
+                    }
+
+                    await axios.get(url, {
+                        responseType: 'blob',
+                        'Cache-Control': null,
+                        'X-Requested-With': null
                     })
                         .then(response => {
                             if (response.data) {
                                 zip.file(subreddits[index].urls[j].substring(subreddits[index].urls[j].lastIndexOf("/") + 1), response.data, {
                                     binary: true
                                 });
+                                files++;
                             }
                         })
                         .catch(error => console.log(error));
@@ -164,19 +165,24 @@ const RedditRipper = class {
 
             window.stdout.write(`[+] generating zip file for the subreddit ${subreddits[index].subreddit}`);
 
-            await zip.generateAsync({
-                type: 'blob'
-            }).then((content) => {
-                var uriContent = URL.createObjectURL(content);
-
-                let downloadLink = document.createElement("a");
-                downloadLink.download = subreddits[index].subreddit + ".zip";
-                downloadLink.href = uriContent;
-
-                document.body.appendChild(downloadLink);
-                downloadLink.click();
-                document.body.removeChild(downloadLink);
-            });
+            if(files > 0) {
+                await zip.generateAsync({
+                    type: 'blob',
+                    compression: "DEFLATE"
+                }).then((content) => {
+                    var uriContent = URL.createObjectURL(content);
+    
+                    let downloadLink = document.createElement("a");
+                    downloadLink.download = subreddits[index].subreddit + ".zip";
+                    downloadLink.href = uriContent;
+    
+                    document.body.appendChild(downloadLink);
+                    downloadLink.click();
+                    document.body.removeChild(downloadLink);
+                });
+            } else {
+                window.stdout.write(`[!] failed to download subreddit ${subreddits[index].subreddit}`);
+            }
         }
     }
 
