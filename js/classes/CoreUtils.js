@@ -9,9 +9,7 @@ const CoreUtils = class {
 
         if(window.args) {
             if(window.args[0]) {
-                for (let index = 0; index < window.args.length; index++) {
-                    message += `${window.args[index]} `;
-                }
+                message = window.args.join(" ");
             }
         }
 
