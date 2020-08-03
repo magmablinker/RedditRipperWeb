@@ -1,7 +1,6 @@
 import ArgParser from "./classes/ArgParser.js";
 import CoreUtils from "./classes/CoreUtils.js";
 import RedditRipper from "./classes/RedditRipper.js";
-import YoutubeDownload from "./classes/YoutubeDownload.js";
 
 var app = new Vue({
     el: "#root",
@@ -15,7 +14,6 @@ var app = new Vue({
         argParser: new ArgParser(),
         coreUtils: new CoreUtils(),
         redditRipper: new RedditRipper(),
-        youtubeDownload: new YoutubeDownload(),
         showInput: true,
         proxyUrl: "https://cors-anywhere.herokuapp.com/"
     },
